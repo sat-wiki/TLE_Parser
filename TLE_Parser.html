@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<script>
+    window.onload = () => {
+        const line0 = document.getElementById("tleLine0").innerHTML;
+        const line1 = document.getElementById("tleLine1").innerHTML;
+        const line2 = document.getElementById("tleLine2").innerHTML;
+
+        // 解析第二行
+        const noradCatId = parseInt(line1.substring(2, 7));
+        const classification = line1.substring(7, 8);
+        const internationalDesignatorLaunchYear = parseInt(line1.substring(9, 11));
+        const internationalDesignatorLaunchNumber = parseInt(line1.substring(11, 14));
+        const pieceOfLaunch = line1.substring(14, 17).trim();
+        const epochYear = parseInt(line1.substring(18, 20)) % 100;
+        const epochDay = parseFloat(line1.substring(20, 32));
+        const meanMotionDerivative = parseFloat(line1.substring(33, 43));
+        const meanMotionSecondDerivative = parseFloat(line1.substring(44, 52));
+        const bstarDragTerm = parseFloat(line1.substring(53, 61));
+        const ephemerisType = parseInt(line1.substring(62, 63));
+        const elementSetNumber = parseInt(line1.substring(64, 68));
+
+        // 解析第三行
+        const inclination = parseFloat(line2.substring(8, 16)) * Math.PI / 180; // 将轨道倾角从度转换为弧度
+        const rightAscensionAscendingNode = parseFloat(line2.substring(17, 25)) * Math.PI / 180; // 将升交点经度从度转换为弧度
+        const eccentricity = parseFloat("0." + line2.substring(26, 33));
+        const argumentPerigee = parseFloat(line2.substring(34, 42)) * Math.PI / 180; // 将近心点辐角从度转换为弧度
+        const meanAnomaly = parseFloat(line2.substring(43, 51)) * Math.PI / 180; // 将平均近点角从度转换为弧度
+        const meanMotion = parseFloat(line2.substring(52, 63));
+        const revolutionNumberAtEpoch = parseInt(line2.substring(63, 68));
+
+        // 根据地球引力常数和平均运动计算半长轴
+        const muEarth = 3.986004418E+14; // 地球引力常数 (m^3/s^2)
+        const n = meanMotion * 2 * Math.PI / 86400; // 平均运动 (rad/s)
+        const a = Math.pow(muEarth / (n ** 2), 1 / 3) / 1000; // 半长轴 (km)
+
+        // 使用牛顿-拉弗森法求解偏近点角 E
+        let E = meanAnomaly; // 初始猜测值
+        const tolerance = 1e-8;
+        const maxIterations = 100;
+        let iteration = 0;
+
+        let f;
+        do {
+            f = E - eccentricity * Math.sin(E) - meanAnomaly;
+            const df = 1 - eccentricity * Math.cos(E);
+            E = E - f / df;
+            iteration++;
+        } while (Math.abs(f) > tolerance && iteration < maxIterations);
+
+        // 计算真近点角 φ
+        const trueAnomaly = 2 * Math.atan(Math.sqrt((1 + eccentricity) / (1 - eccentricity)) * Math.tan(E / 2)); // 真近点角 (弧度)
+        // 计算轨道六根数
+        const orbitalElements = [
+            a,                  // 半长轴 (km)
+            eccentricity,       // 离心率
+            inclination,        // 轨道倾角 (弧度)
+            argumentPerigee,    // 近心点辐角 (弧度)
+            rightAscensionAscendingNode, // 升交点经度 (弧度)
+            trueAnomaly         // 真近点角 (弧度)
+        ];
+
+        // 输出结果
+        const result = `半长轴 a: ${orbitalElements[0].toFixed(2)} km\n` +
+            `离心率 e: ${orbitalElements[1].toFixed(6)}\n` +
+            `轨道倾角 i: ${orbitalElements[2].toFixed(2)} rad (${(orbitalElements[2] * 180 / Math.PI).toFixed(2)} deg)\n` +
+            `近心点辐角 ω: ${orbitalElements[3].toFixed(2)} rad (${(orbitalElements[3] * 180 / Math.PI).toFixed(2)} deg)\n` +
+            `升交点经度 Ω: ${orbitalElements[4].toFixed(2)} rad (${(orbitalElements[4] * 180 / Math.PI).toFixed(2)} deg)\n` +
+            `真近点角 φ: ${orbitalElements[5].toFixed(2)} rad (${(orbitalElements[5] * 180 / Math.PI).toFixed(2)} deg)`;
+        document.getElementById("result").innerHTML = result;
+    }
+</script>
