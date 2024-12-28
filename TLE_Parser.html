@@ -38,8 +38,8 @@
         const tolerance = 1e-8;
         const maxIterations = 100;
         let iteration = 0;
-
         let f;
+        
         do {
             f = E - eccentricity * Math.sin(E) - meanAnomaly;
             const df = 1 - eccentricity * Math.cos(E);
