@@ -39,7 +39,7 @@
         const maxIterations = 100;
         let iteration = 0;
         let f;
-        
+
         do {
             f = E - eccentricity * Math.sin(E) - meanAnomaly;
             const df = 1 - eccentricity * Math.cos(E);
@@ -60,12 +60,26 @@
         ];
 
         // 输出结果
-        const result = `半长轴 a: ${orbitalElements[0].toFixed(2)} km\n` +
-            `离心率 e: ${orbitalElements[1].toFixed(6)}\n` +
-            `轨道倾角 i: ${orbitalElements[2].toFixed(2)} rad (${(orbitalElements[2] * 180 / Math.PI).toFixed(2)} deg)\n` +
-            `近心点辐角 ω: ${orbitalElements[3].toFixed(2)} rad (${(orbitalElements[3] * 180 / Math.PI).toFixed(2)} deg)\n` +
-            `升交点经度 Ω: ${orbitalElements[4].toFixed(2)} rad (${(orbitalElements[4] * 180 / Math.PI).toFixed(2)} deg)\n` +
-            `真近点角 φ: ${orbitalElements[5].toFixed(2)} rad (${(orbitalElements[5] * 180 / Math.PI).toFixed(2)} deg)`;
-        document.getElementById("result").innerHTML = result;
+        const elementIds = [
+            "result-a", "result-e", "result-i-rad", "result-i-deg",
+            "result-argPerigee-rad", "result-argPerigee-deg",
+            "result-raan-rad", "result-raan-deg",
+            "result-trueAnomaly-rad", "result-trueAnomaly-deg"
+        ];
+
+        // 获取所有需要更新的DOM元素
+        const elements = elementIds.map(id => document.getElementById(id));
+
+        // 更新DOM元素
+        elements[0].innerHTML = `${orbitalElements[0].toFixed(2)}`;
+        elements[1].innerHTML = `${orbitalElements[1].toFixed(6)}`;
+        elements[2].innerHTML = `${orbitalElements[2].toFixed(2)}`;
+        elements[3].innerHTML = `${(orbitalElements[2] * 180 / Math.PI).toFixed(2)}`;
+        elements[4].innerHTML = `${orbitalElements[3].toFixed(2)}`;
+        elements[5].innerHTML = `${(orbitalElements[3] * 180 / Math.PI).toFixed(2)}`;
+        elements[6].innerHTML = `${orbitalElements[4].toFixed(2)}`;
+        elements[7].innerHTML = `${(orbitalElements[4] * 180 / Math.PI).toFixed(2)}`;
+        elements[8].innerHTML = `${orbitalElements[5].toFixed(2)}`;
+        elements[9].innerHTML = `${(orbitalElements[5] * 180 / Math.PI).toFixed(2)}`;
     }
 </script>
