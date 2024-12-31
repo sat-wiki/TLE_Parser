@@ -1,85 +1,129 @@
 <!DOCTYPE html>
+<div style="display:none;">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css"
+    integrity="sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI" crossorigin="anonymous">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.js"
+    integrity="sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t"
+    crossorigin="anonymous"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/mhchem.min.js"
+    integrity="sha384-ifpG+NlgMq0kvOSGqGQxW1mJKpjjMDmZdpKGq3tbvD3WPhyshCEEYClriK/wRVU0"
+    crossorigin="anonymous"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/auto-render.min.js"
+    integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.body, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true }
+        ],
+        throwOnError: false
+      });
+    });  
+  </script>
+</div>
 <script>
-    window.onload = () => {
-        const line0 = document.getElementById("tleLine0").innerHTML;
-        const line1 = document.getElementById("tleLine1").innerHTML;
-        const line2 = document.getElementById("tleLine2").innerHTML;
+  window.onload = () => {
+    const line0 = document.getElementById("tleLine0").innerHTML;
+    const line1 = document.getElementById("tleLine1").innerHTML;
+    const line2 = document.getElementById("tleLine2").innerHTML;
 
-        // 解析第二行
-        const noradCatId = parseInt(line1.substring(2, 7));
-        const classification = line1.substring(7, 8);
-        const internationalDesignatorLaunchYear = parseInt(line1.substring(9, 11));
-        const internationalDesignatorLaunchNumber = parseInt(line1.substring(11, 14));
-        const pieceOfLaunch = line1.substring(14, 17).trim();
-        const epochYear = parseInt(line1.substring(18, 20)) % 100;
-        const epochDay = parseFloat(line1.substring(20, 32));
-        const meanMotionDerivative = parseFloat(line1.substring(33, 43));
-        const meanMotionSecondDerivative = parseFloat(line1.substring(44, 52));
-        const bstarDragTerm = parseFloat(line1.substring(53, 61));
-        const ephemerisType = parseInt(line1.substring(62, 63));
-        const elementSetNumber = parseInt(line1.substring(64, 68));
+    // 解析第二行
+    const noradCatId = parseInt(line1.substring(2, 7));
+    const classification = line1.substring(7, 8);
+    const internationalDesignatorLaunchYear = parseInt(line1.substring(9, 11));
+    const internationalDesignatorLaunchNumber = parseInt(line1.substring(11, 14));
+    const pieceOfLaunch = line1.substring(14, 17).trim();
+    const epochYear = parseInt(line1.substring(18, 20)) % 100;
+    const epochDay = parseFloat(line1.substring(20, 32));
+    const meanMotionDerivative = parseFloat(line1.substring(33, 43));
+    const meanMotionSecondDerivative = parseFloat(line1.substring(44, 52));
+    const bstarDragTerm = parseFloat(line1.substring(53, 61));
+    const ephemerisType = parseInt(line1.substring(62, 63));
+    const elementSetNumber = parseInt(line1.substring(64, 68));
 
-        // 解析第三行
-        const inclination = parseFloat(line2.substring(8, 16)) * Math.PI / 180; // 将轨道倾角从度转换为弧度
-        const rightAscensionAscendingNode = parseFloat(line2.substring(17, 25)) * Math.PI / 180; // 将升交点经度从度转换为弧度
-        const eccentricity = parseFloat("0." + line2.substring(26, 33));
-        const argumentPerigee = parseFloat(line2.substring(34, 42)) * Math.PI / 180; // 将近心点辐角从度转换为弧度
-        const meanAnomaly = parseFloat(line2.substring(43, 51)) * Math.PI / 180; // 将平均近点角从度转换为弧度
-        const meanMotion = parseFloat(line2.substring(52, 63));
-        const revolutionNumberAtEpoch = parseInt(line2.substring(63, 68));
+    // 解析第三行
+    const inclination = parseFloat(line2.substring(8, 16)) * Math.PI / 180; // 将轨道倾角从度转换为弧度
+    const rightAscensionAscendingNode = parseFloat(line2.substring(17, 25)) * Math.PI / 180; // 将升交点经度从度转换为弧度
+    const eccentricity = parseFloat("0." + line2.substring(26, 33));
+    const argumentPerigee = parseFloat(line2.substring(34, 42)) * Math.PI / 180; // 将近心点辐角从度转换为弧度
+    const meanAnomaly = parseFloat(line2.substring(43, 51)) * Math.PI / 180; // 将平均近点角从度转换为弧度
+    const meanMotion = parseFloat(line2.substring(52, 63));
+    const revolutionNumberAtEpoch = parseInt(line2.substring(63, 68));
 
-        // 根据地球引力常数和平均运动计算半长轴
-        const muEarth = 3.986004418E+14; // 地球引力常数 (m^3/s^2)
-        const n = meanMotion * 2 * Math.PI / 86400; // 平均运动 (rad/s)
-        const a = Math.pow(muEarth / (n ** 2), 1 / 3) / 1000; // 半长轴 (km)
+    // 根据地球引力常数和平均运动计算半长轴
+    const muEarth = 3.986004418E+14; // 地球引力常数 (m^3/s^2)
+    const n = meanMotion * 2 * Math.PI / 86400; // 平均运动 (rad/s)
+    const a = Math.pow(muEarth / (n ** 2), 1 / 3) / 1000; // 半长轴 (km)
 
-        // 使用牛顿-拉弗森法求解偏近点角 E
-        let E = meanAnomaly; // 初始猜测值
-        const tolerance = 1e-8;
-        const maxIterations = 100;
-        let iteration = 0;
-        let f;
+    // 使用牛顿-拉弗森法求解偏近点角 E
+    let E = meanAnomaly; // 初始猜测值
+    const tolerance = 1e-8;
+    const maxIterations = 100;
+    let iteration = 0;
+    let f;
 
-        do {
-            f = E - eccentricity * Math.sin(E) - meanAnomaly;
-            const df = 1 - eccentricity * Math.cos(E);
-            E = E - f / df;
-            iteration++;
-        } while (Math.abs(f) > tolerance && iteration < maxIterations);
+    do {
+      f = E - eccentricity * Math.sin(E) - meanAnomaly;
+      const df = 1 - eccentricity * Math.cos(E);
+      E = E - f / df;
+      iteration++;
+    } while (Math.abs(f) > tolerance && iteration < maxIterations);
 
-        // 计算真近点角 φ
-        const trueAnomaly = 2 * Math.atan(Math.sqrt((1 + eccentricity) / (1 - eccentricity)) * Math.tan(E / 2)); // 真近点角 (弧度)
-        // 计算轨道六根数
-        const orbitalElements = [
-            a,                  // 半长轴 (km)
-            eccentricity,       // 离心率
-            inclination,        // 轨道倾角 (弧度)
-            argumentPerigee,    // 近心点辐角 (弧度)
-            rightAscensionAscendingNode, // 升交点经度 (弧度)
-            trueAnomaly         // 真近点角 (弧度)
-        ];
+    // 计算真近点角 φ
+    const trueAnomaly = 2 * Math.atan(Math.sqrt((1 + eccentricity) / (1 - eccentricity)) * Math.tan(E / 2)); // 真近点角 (弧度)
+    // 计算轨道六根数
+    const orbitalElements = [
+      a,                  // 半长轴 (km)
+      eccentricity,       // 离心率
+      inclination,        // 轨道倾角 (弧度)
+      argumentPerigee,    // 近心点辐角 (弧度)
+      rightAscensionAscendingNode, // 升交点经度 (弧度)
+      trueAnomaly         // 真近点角 (弧度)
+    ];
 
-        // 输出结果
-        const elementIds = [
-            "result-a", "result-e", "result-i-rad", "result-i-deg",
-            "result-argPerigee-rad", "result-argPerigee-deg",
-            "result-raan-rad", "result-raan-deg",
-            "result-trueAnomaly-rad", "result-trueAnomaly-deg"
-        ];
+    // 输出结果
+    const elementIds = [
+      "resultTex-a",
+      "resultTex-e",
+      "resultTex-i-rad",
+      "resultTex-i-deg",
+      "resultTex-argPerigee-rad",
+      "resultTex-argPerigee-deg",
+      "resultTex-raan-rad",
+      "resultTex-raan-deg",
+      "resultTex-trueAnomaly-rad",
+      "resultTex-trueAnomaly-deg"
+    ];
 
-        // 获取所有需要更新的DOM元素
-        const elements = elementIds.map(id => document.getElementById(id));
+    let elementsRaw = new Array(10);
+    elementsRaw[0] = `${orbitalElements[0].toFixed(2)} km`;
+    elementsRaw[1] = `${orbitalElements[1].toFixed(6)}`;
+    elementsRaw[2] = `${orbitalElements[2].toFixed(2)} rad`;
+    elementsRaw[3] = `\\left(${(orbitalElements[2] * 180 / Math.PI).toFixed(2)}^{\\circ}\\right)`;
+    elementsRaw[4] = `${orbitalElements[3].toFixed(2)} rad`;
+    elementsRaw[5] = `\\left(${(orbitalElements[3] * 180 / Math.PI).toFixed(2)}^{\\circ}\\right)`;
+    elementsRaw[6] = `${orbitalElements[4].toFixed(2)} rad`;
+    elementsRaw[7] = `\\left(${(orbitalElements[4] * 180 / Math.PI).toFixed(2)}^{\\circ}\\right)`;
+    elementsRaw[8] = `${orbitalElements[5].toFixed(2)} rad`;
+    elementsRaw[9] = `\\left(${(orbitalElements[5] * 180 / Math.PI).toFixed(2)}^{\\circ}\\right)`;
 
-        // 更新DOM元素
-        elements[0].innerHTML = `${orbitalElements[0].toFixed(2)}`;
-        elements[1].innerHTML = `${orbitalElements[1].toFixed(6)}`;
-        elements[2].innerHTML = `${orbitalElements[2].toFixed(2)}`;
-        elements[3].innerHTML = `${(orbitalElements[2] * 180 / Math.PI).toFixed(2)}`;
-        elements[4].innerHTML = `${orbitalElements[3].toFixed(2)}`;
-        elements[5].innerHTML = `${(orbitalElements[3] * 180 / Math.PI).toFixed(2)}`;
-        elements[6].innerHTML = `${orbitalElements[4].toFixed(2)}`;
-        elements[7].innerHTML = `${(orbitalElements[4] * 180 / Math.PI).toFixed(2)}`;
-        elements[8].innerHTML = `${orbitalElements[5].toFixed(2)}`;
-        elements[9].innerHTML = `${(orbitalElements[5] * 180 / Math.PI).toFixed(2)}`;
+    // 获取所有需要更新的DOM元素
+    const elements = elementIds.map(id => document.getElementById(id));
+
+    for (let i = 0; i < 10; i++) {
+      try {
+        // 使用 KaTeX 渲染字符串
+        const renderedHtml = katex.renderToString(elementsRaw[i]);
+        elements[i].innerHTML = renderedHtml;
+      } catch (error) {
+        // 处理可能的渲染错误
+        console.error(`KaTeX rendering error for element ${i}:`, error);
+        elements[i].innerHTML = "Error rendering with KaTeX";
+      }
     }
+  }
 </script>
