@@ -41,7 +41,7 @@
     elementsRaw[9] = `\\left(${(orbitalElements[5] * 180 / Math.PI).toFixed(2)}^{\\circ}\\right)`;
 
     // 获取所有需要更新的DOM元素
-    const elements = document.getElementsByClassName("tleTeX")[globalThis.tleSeq]
+    const elements = document.getElementsByClassName("tleTeX")[globalThis.tleSeq];
     for (let i = 0; i < 10; i++) {
         try {
             // 使用 KaTeX 渲染字符串
