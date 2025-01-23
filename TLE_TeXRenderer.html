@@ -26,18 +26,6 @@
     </script>
 </div>
 <script>
-    const elementClass = [
-        "resultTex-a",
-        "resultTex-e",
-        "resultTex-i-rad",
-        "resultTex-i-deg",
-        "resultTex-argPerigee-rad",
-        "resultTex-argPerigee-deg",
-        "resultTex-raan-rad",
-        "resultTex-raan-deg",
-        "resultTex-trueAnomaly-rad",
-        "resultTex-trueAnomaly-deg"
-    ];
     const tleId = globalThis.tleSeq.toString();
     const orbitalElements = globalThis.orbitalElement[tleId];
     let elementsRaw = new Array(10);
@@ -53,8 +41,7 @@
     elementsRaw[9] = `\\left(${(orbitalElements[5] * 180 / Math.PI).toFixed(2)}^{\\circ}\\right)`;
 
     // 获取所有需要更新的DOM元素
-    const elements = elementClass.map(className => document.getElementsByClassName(className)[globalThis.tleSeq]);
-
+    const elements = document.getElementsByClassName("tleTeX")[globalThis.tleSeq]
     for (let i = 0; i < 10; i++) {
         try {
             // 使用 KaTeX 渲染字符串
