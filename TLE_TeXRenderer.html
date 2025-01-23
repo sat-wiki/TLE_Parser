@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<div style="display:none;">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css"
+        integrity="sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI" crossorigin="anonymous">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.js"
+        integrity="sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t"
+        crossorigin="anonymous"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/mhchem.min.js"
+        integrity="sha384-ifpG+NlgMq0kvOSGqGQxW1mJKpjjMDmZdpKGq3tbvD3WPhyshCEEYClriK/wRVU0"
+        crossorigin="anonymous"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/auto-render.min.js"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+        onload="renderMathInElement(document.body);"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true }
+                ],
+                throwOnError: false
+            });
+        });  
+    </script>
+</div>
+<script>
+    const elementClass = [
+        "resultTex-a",
+        "resultTex-e",
+        "resultTex-i-rad",
+        "resultTex-i-deg",
+        "resultTex-argPerigee-rad",
+        "resultTex-argPerigee-deg",
+        "resultTex-raan-rad",
+        "resultTex-raan-deg",
+        "resultTex-trueAnomaly-rad",
+        "resultTex-trueAnomaly-deg"
+    ];
+    const tleId = globalThis.tleSeq.toString();
+    const orbitalElements = globalThis.orbitalElement[tleId];
+    let elementsRaw = new Array(10);
+    elementsRaw[0] = `${orbitalElements[0].toFixed(2)} km`;
+    elementsRaw[1] = `${orbitalElements[1].toFixed(6)}`;
+    elementsRaw[2] = `${orbitalElements[2].toFixed(2)} rad`;
+    elementsRaw[3] = `\\left(${(orbitalElements[2] * 180 / Math.PI).toFixed(2)}^{\\circ}\\right)`;
+    elementsRaw[4] = `${orbitalElements[3].toFixed(2)} rad`;
+    elementsRaw[5] = `\\left(${(orbitalElements[3] * 180 / Math.PI).toFixed(2)}^{\\circ}\\right)`;
+    elementsRaw[6] = `${orbitalElements[4].toFixed(2)} rad`;
+    elementsRaw[7] = `\\left(${(orbitalElements[4] * 180 / Math.PI).toFixed(2)}^{\\circ}\\right)`;
+    elementsRaw[8] = `${orbitalElements[5].toFixed(2)} rad`;
+    elementsRaw[9] = `\\left(${(orbitalElements[5] * 180 / Math.PI).toFixed(2)}^{\\circ}\\right)`;
+
+    // 获取所有需要更新的DOM元素
+    const elements = elementClass.map(className => document.getElementsByClassName(className)[globalThis.tleSeq]);
+
+    for (let i = 0; i < 10; i++) {
+        try {
+            // 使用 KaTeX 渲染字符串
+            const renderedHtml = katex.renderToString(elementsRaw[i]);
+            elements[i].innerHTML = renderedHtml;
+        } catch (error) {
+            // 处理可能的渲染错误
+            console.error(`KaTeX rendering error for element ${i}:`, error);
+            elements[i].innerHTML = "Error rendering with KaTeX";
+        }
+    }
+</script>
