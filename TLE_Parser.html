@@ -1,71 +1,300 @@
 <!DOCTYPE html>
-<script>
-    window.onload = () => {
-        if (!globalThis.tleSeq) {
-            globalThis.tleSeq = 0;
-        }
-        else {
-            globalThis.tleSeq++;
-        }
-        const tleData = document.getElementsByClassName("tleData")[globalThis.tleSeq];
-        const line0 = tleData.item(0).innerHTML;
-        const line1 = tleData.item(1).innerHTML;
-        const line2 = tleData.item(2).innerHTML;
-        // 解析第二行
-        const noradCatId = parseInt(line1.substring(2, 7));
-        const classification = line1.substring(7, 8);
-        const internationalDesignatorLaunchYear = parseInt(line1.substring(9, 11));
-        const internationalDesignatorLaunchNumber = parseInt(line1.substring(11, 14));
-        const pieceOfLaunch = line1.substring(14, 17).trim();
-        const epochYear = parseInt(line1.substring(18, 20)) % 100;
-        const epochDay = parseFloat(line1.substring(20, 32));
-        const meanMotionDerivative = parseFloat(line1.substring(33, 43));
-        const meanMotionSecondDerivative = parseFloat(line1.substring(44, 52));
-        const bstarDragTerm = parseFloat(line1.substring(53, 61));
-        const ephemerisType = parseInt(line1.substring(62, 63));
-        const elementSetNumber = parseInt(line1.substring(64, 68));
-
-        // 解析第三行
-        const inclination = parseFloat(line2.substring(8, 16)) * Math.PI / 180; // 将轨道倾角从度转换为弧度
-        const rightAscensionAscendingNode = parseFloat(line2.substring(17, 25)) * Math.PI / 180; // 将升交点经度从度转换为弧度
-        const eccentricity = parseFloat("0." + line2.substring(26, 33));
-        const argumentPerigee = parseFloat(line2.substring(34, 42)) * Math.PI / 180; // 将近心点辐角从度转换为弧度
-        const meanAnomaly = parseFloat(line2.substring(43, 51)) * Math.PI / 180; // 将平均近点角从度转换为弧度
-        const meanMotion = parseFloat(line2.substring(52, 63));
-        const revolutionNumberAtEpoch = parseInt(line2.substring(63, 68));
-
-        // 根据地球引力常数和平均运动计算半长轴
-        const muEarth = 3.986004418E+14; // 地球引力常数 (m^3/s^2)
-        const n = meanMotion * 2 * Math.PI / 86400; // 平均运动 (rad/s)
-        const a = Math.pow(muEarth / (n ** 2), 1 / 3) / 1000; // 半长轴 (km)
-
-        // 使用牛顿-拉弗森法求解偏近点角 E
-        let E = meanAnomaly; // 初始猜测值
-        const tolerance = 1e-8;
-        const maxIterations = 100;
-        let iteration = 0;
-        let f;
-
-        do {
-            f = E - eccentricity * Math.sin(E) - meanAnomaly;
-            const df = 1 - eccentricity * Math.cos(E);
-            E = E - f / df;
-            iteration++;
-        } while (Math.abs(f) > tolerance && iteration < maxIterations);
-
-        // 计算真近点角 φ
-        const trueAnomaly = 2 * Math.atan(Math.sqrt((1 + eccentricity) / (1 - eccentricity)) * Math.tan(E / 2)); // 真近点角 (弧度)
-        // 计算轨道六根数
-        const orbitalElements = [
-            a,                  // 半长轴 (km)
-            eccentricity,       // 离心率
-            inclination,        // 轨道倾角 (弧度)
-            argumentPerigee,    // 近心点辐角 (弧度)
-            rightAscensionAscendingNode, // 升交点经度 (弧度)
-            trueAnomaly         // 真近点角 (弧度)
-        ];
-        const tleId = globalThis.tleSeq.toString();
-        globalThis.orbitalElement[tleId] = orbitalElements;
-        // 输出结果
+<style>
+    /* 使用属性选择器避免ID冲突 */
+    [data-tle-parser] {
+        position: relative;
+        margin: 20px 0;
     }
+
+    [data-tle-parser] .box {
+        border: 2px solid #2c3e50;
+        border-radius: 10px;
+        padding: 25px;
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    [data-tle-parser] .input-area {
+        margin-bottom: 20px;
+    }
+
+    [data-tle-parser] textarea {
+        width: 100%;
+        height: 120px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        resize: vertical;
+    }
+
+    [data-tle-parser] .grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+    }
+
+    [data-tle-parser] .item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    [data-tle-parser] .label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #2c3e50;
+    }
+
+    [data-tle-parser] input {
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: white;
+        font-family: 'Courier New', monospace;
+    }
+
+    [data-tle-parser] .buttons {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    [data-tle-parser] button {
+        padding: 12px 25px;
+        margin: 0 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+    }
+
+    [data-tle-parser] .parse {
+        background-color: #3498db;
+        color: white;
+    }
+
+    [data-tle-parser] .parse:hover {
+        background-color: #2980b9;
+    }
+
+    [data-tle-parser] .reset {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    [data-tle-parser] .reset:hover {
+        background-color: #c0392b;
+    }
+
+    [data-tle-parser] .error {
+        color: #e74c3c;
+        font-weight: bold;
+        text-align: center;
+        margin: 10px 0;
+        display: none;
+    }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<div data-tle-parser>
+    <div class="box">
+        <h2 style="text-align: center; color: #2c3e50;">TLE轨道要素解析器</h2>
+
+        <div class="input-area">
+            <label>请输入TLE数据（三行格式）：</label>
+            <textarea placeholder="在此粘贴完整的三行TLE数据...&#10;例如：&#10;ISS (ZARYA)&#10;1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927&#10;2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537"></textarea>
+        </div>
+
+        <div class="error"></div>
+
+        <div class="grid">
+            <div class="item">
+                <span class="label">半长轴 a (km):</span>
+                <input type="text" readonly>
+            </div>
+            <div class="item">
+                <span class="label">离心率 e:</span>
+                <input type="text" readonly>
+            </div>
+            <div class="item">
+                <span class="label">轨道倾角 i (度):</span>
+                <input type="text" readonly>
+            </div>
+            <div class="item">
+                <span class="label">轨道倾角 i (弧度):</span>
+                <input type="text" readonly>
+            </div>
+            <div class="item">
+                <span class="label">升交点赤经 Ω (度):</span>
+                <input type="text" readonly>
+            </div>
+            <div class="item">
+                <span class="label">升交点赤经 Ω (弧度):</span>
+                <input type="text" readonly>
+            </div>
+            <div class="item">
+                <span class="label">近地点幅角 ω (度):</span>
+                <input type="text" readonly>
+            </div>
+            <div class="item">
+                <span class="label">近地点幅角 ω (弧度):</span>
+                <input type="text" readonly>
+            </div>
+            <div class="item">
+                <span class="label">真近点角 ν (度):</span>
+                <input type="text" readonly>
+            </div>
+            <div class="item">
+                <span class="label">真近点角 ν (弧度):</span>
+                <input type="text" readonly>
+            </div>
+            <div class="item">
+                <span class="label">平近点角 M (度):</span>
+                <input type="text" readonly>
+            </div>
+            <div class="item">
+                <span class="label">卫星编号:</span>
+                <input type="text" readonly>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="parse">解析TLE</button>
+            <button class="reset">重置</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // 为每个[data-tle-parser]元素创建独立的解析器
+        $('[data-tle-parser]').each(function () {
+            const $container = $(this);
+            const parserId = 'parser-' + Math.random().toString(36).substr(2, 9);
+
+            // 创建封闭的解析器对象
+            const parser = {
+                seq: 0,
+                elements: {},
+
+                init: function () {
+                    $container.find('.parse').click(() => this.parse());
+                    $container.find('.reset').click(() => this.reset());
+                },
+
+                parse: function () {
+                    const input = $container.find('textarea').val().trim();
+                    const $error = $container.find('.error');
+
+                    $error.hide();
+
+                    if (!input) {
+                        $error.text('请输入TLE数据').show();
+                        return;
+                    }
+
+                    try {
+                        this.processTLE(input);
+                    } catch (e) {
+                        $error.text('错误: ' + e.message).show();
+                    }
+                },
+
+                reset: function () {
+                    $container.find('textarea').val('');
+                    $container.find('input').val('');
+                    $container.find('.error').hide();
+                },
+
+                processTLE: function (tle) {
+                    const lines = tle.split('\n').filter(l => l.trim());
+
+                    if (lines.length < 3) throw new Error('需要三行TLE数据');
+
+                    const line0 = lines[0].trim();
+                    const line1 = lines[1].trim();
+                    const line2 = lines[2].trim();
+
+                    if (!line1.startsWith('1 ') || !line2.startsWith('2 ')) {
+                        throw new Error('TLE格式不正确');
+                    }
+
+                    // 解析完整的TLE数据
+                    const satId = parseInt(line1.substring(2, 7));
+                    
+                    // 第二行数据
+                    const inclination = parseFloat(line2.substring(8, 16));  // 轨道倾角 i
+                    const raan = parseFloat(line2.substring(17, 25));        // 升交点赤经 Ω
+                    const eccentricityStr = line2.substring(26, 33);
+                    const eccentricity = parseFloat("0." + eccentricityStr); // 离心率 e
+                    const argPerigee = parseFloat(line2.substring(34, 42));   // 近地点幅角 ω
+                    const meanAnomaly = parseFloat(line2.substring(43, 51));  // 平近点角 M
+                    const meanMotion = parseFloat(line2.substring(52, 63));   // 平均运动
+                    
+                    // 计算半长轴 a
+                    const muEarth = 3.986004418E+14; // 地球引力常数 (m³/s²)
+                    const n = meanMotion * 2 * Math.PI / 86400; // 平均运动 (rad/s)
+                    const semiMajorAxis = Math.pow(muEarth / (n * n), 1/3) / 1000; // 半长轴 (km)
+
+                    // 角度转换为弧度
+                    const inclinationRad = inclination * Math.PI / 180;
+                    const raanRad = raan * Math.PI / 180;
+                    const argPerigeeRad = argPerigee * Math.PI / 180;
+                    const meanAnomalyRad = meanAnomaly * Math.PI / 180;
+
+                    // 使用牛顿-拉弗森法求解偏近点角 E
+                    let E = meanAnomalyRad; // 初始猜测值
+                    const tolerance = 1e-8;
+                    const maxIterations = 100;
+                    
+                    for (let iteration = 0; iteration < maxIterations; iteration++) {
+                        const f = E - eccentricity * Math.sin(E) - meanAnomalyRad;
+                        if (Math.abs(f) <= tolerance) break;
+                        const df = 1 - eccentricity * Math.cos(E);
+                        E = E - f / df;
+                    }
+
+                    // 计算真近点角 ν
+                    const trueAnomalyRad = 2 * Math.atan(Math.sqrt((1 + eccentricity) / (1 - eccentricity)) * Math.tan(E / 2));
+                    const trueAnomalyDeg = trueAnomalyRad * 180 / Math.PI;
+
+                    // 更新显示 - 完整的轨道六根数
+                    const inputs = $container.find('input');
+                    inputs.eq(0).val(semiMajorAxis.toFixed(3));           // a (km)
+                    inputs.eq(1).val(eccentricity.toFixed(7));            // e
+                    inputs.eq(2).val(inclination.toFixed(4));             // i (度)
+                    inputs.eq(3).val(inclinationRad.toFixed(6));          // i (弧度)
+                    inputs.eq(4).val(raan.toFixed(4));                    // Ω (度)
+                    inputs.eq(5).val(raanRad.toFixed(6));                 // Ω (弧度)
+                    inputs.eq(6).val(argPerigee.toFixed(4));              // ω (度)
+                    inputs.eq(7).val(argPerigeeRad.toFixed(6));           // ω (弧度)
+                    inputs.eq(8).val(trueAnomalyDeg.toFixed(4));          // ν (度)
+                    inputs.eq(9).val(trueAnomalyRad.toFixed(6));          // ν (弧度)
+                    inputs.eq(10).val(meanAnomaly.toFixed(4));            // M (度)
+                    inputs.eq(11).val(satId);                             // 卫星编号
+
+                    // 存储轨道六根数到该实例的独立变量中
+                    const elementId = (++this.seq).toString();
+                    this.elements[elementId] = {
+                        semiMajorAxis: semiMajorAxis,        // a (km)
+                        eccentricity: eccentricity,          // e
+                        inclination: inclinationRad,         // i (弧度)
+                        raan: raanRad,                       // Ω (弧度)
+                        argPerigee: argPerigeeRad,           // ω (弧度)
+                        trueAnomaly: trueAnomalyRad          // ν (弧度)
+                    };
+
+                    console.log(`${parserId} 解析完成，元素ID: ${elementId}`);
+                    console.log(`${parserId} 轨道六根数:`, this.elements[elementId]);
+                }
+            };
+
+            parser.init();
+        });
+    });
 </script>
